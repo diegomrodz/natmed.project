@@ -1,3 +1,9 @@
 .ipynb_checkpoints
+
 Datasets/*.json
+Datasets/*.tsv
+Datasets/*.csv
+Datasets/*.zip
+Datasets/*.gz
+
 Dumps/*.json

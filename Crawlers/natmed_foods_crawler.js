@@ -173,6 +173,15 @@ function Food() {
             }
         });
     }
+
+/// Dosing and Adminstration
+    var el = document.querySelector("#dosing-content");
+
+    self.dosingInfo = [];
+
+    if (el) {
+        
+    }
 }
 
 console.log(JSON.stringify(new Food(), null, '\t'));

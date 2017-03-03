@@ -7,3 +7,5 @@ Datasets/*.zip
 Datasets/*.gz
 
 Dumps/*.json
+
+Scripts/node_modules

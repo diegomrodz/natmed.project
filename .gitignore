@@ -6,6 +6,8 @@ Datasets/*.csv
 Datasets/*.zip
 Datasets/*.gz
 
+Datasets/graphdb
+
 Dumps/*.json
 Dumps/*.csv
 

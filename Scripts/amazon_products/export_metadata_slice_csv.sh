@@ -1,8 +1,4 @@
-mongoexport.exe --db=natural_med 
-				--collection=full_health_care_meta 
-				--limit=1000 
-				--type=csv --fields asin,title,description,imUrl 
-				--out=../../Dumps/natural_metadata.csv
+mongoexport.exe --db=natural_med --collection=full_health_care_meta --limit=100000 --skip=20000 --type=csv --fields asin,title,description,imUrl --out=../../Dumps/natural_metadata.csv
 
 mongo.exe --quiet natural_med export_metadata_also_bought.js > ../../Dumps/natural_metadata_also_bought.csv
 

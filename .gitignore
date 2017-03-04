@@ -7,8 +7,9 @@ Datasets/*.zip
 Datasets/*.gz
 
 Datasets/graphdb
+Datasets/graphlab
 
 Dumps/*.json
 Dumps/*.csv
 
-Scripts/node_modules
+Scripts/amazon_products/node_modules

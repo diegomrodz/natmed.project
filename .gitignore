@@ -13,3 +13,4 @@ Dumps/*.json
 Dumps/*.csv
 
 Scripts/amazon_products/node_modules
+Scripts/amazon/node_modules

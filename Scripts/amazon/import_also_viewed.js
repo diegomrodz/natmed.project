@@ -8,24 +8,24 @@ var fs = require('fs');
 var neo4j = require('neo4j-driver').v1;
 var driver = neo4j.driver("bolt://localhost", neo4j.auth.basic("neo4j", "natural_med"));
 
-var BATCH_SIZE = 1000;
+var BATCH_SIZE = 10000;
 var GDB_FILEPATH = "C:\\Users\\diego\\NaturalMedicineProject\\Datasets\\graphdb\\import\\import_data.csv";
 
-var FIELDS = ["productID", "title", "description", "imageUrl"];
+var FIELDS = ["productID", "relatedTo"];
 
 var STATEMENT = `
 USING PERIODIC COMMIT
 LOAD CSV WITH HEADERS FROM "file:\\\\import_data.csv" AS row
-MERGE (product:Product {productID: row.productID})
-ON CREATE SET product.title = row.title,
-			  product.description = row.description,
-			  product.imageUrl = row.imUrl;
+MATCH (a:Product {productID: row.productID})
+MATCH (b:Product {productID: row.relatedTo})
+MERGE (a)-[:HAS_ALSO_VIEWED]->(b);
 `;
 
 function getDocuments(collection, step) {
 	return function (callback) {
 		collection.aggregate([
-			{ "$project": { "productID": "$asin", "title": 1, "description": 1, "imageUrl": "$imUrl" } },
+			{ "$unwind": { "path": "$related.also_viewed" } },
+    		{ "$project": { "productID": "$asin", "relatedTo": "$related.also_viewed" } },
 			{ "$skip": step },
 			{ "$limit": BATCH_SIZE }
 		])
@@ -33,6 +33,7 @@ function getDocuments(collection, step) {
 			if (err) {
 				callback(err);
 			} else {
+				console.log(`${items.length} staged for commit.`);
 				callback(null, items);
 			}
 		});
@@ -40,10 +41,12 @@ function getDocuments(collection, step) {
 }
 
 function getCount(collection, callback) {
-	collection.count(function (err, result) {
-		if (err) { callback(err); }
-
-		callback(null, result);
+	collection.aggregate([
+		{ "$unwind": { "path": "$related.also_viewed" } },
+    	{ "$project": { "productID": "$asin", "relatedTo": "$related.also_viewed" } },
+	    { "$count": "count" }
+	], function(err, result) {
+		callback(null, result[0]["count"]);
 	});
 }
 
@@ -103,10 +106,10 @@ function importDocuments(collection, step, count, endAll) {
 		}
 	], function (err, result) {
 		if (err) {
-			console.log(`Batch ${step}-${step - BATCH_SIZE} com erro.`);
+			console.log(`Batch #${step} com erro.`);
 			console.log(err);			
 		} else {
-			console.log(`Batch ${step}-${step - BATCH_SIZE} completa de ${count} restantes.`);
+			console.log(`Batch #${step} completa de ${count} restantes.`);
 		}
 
 		endAll(null);

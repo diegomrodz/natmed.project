@@ -174,7 +174,7 @@ function Food() {
         });
     }
 
-/// Dosing and Adminstration
+/// Dosing and Adminstration ---------------------------------------------------------
     var el = document.querySelector("#dosing-content");
 
     self.dosingInfo = [];
@@ -224,7 +224,7 @@ function Food() {
         });
     }
 
-/// Adverse Effects
+/// Adverse Effects -----------------------------------------------------------------
     var el = document.querySelector("#adverseEvents-content");
 
     self.adverseEffects = {

@@ -180,7 +180,102 @@ function Food() {
     self.dosingInfo = [];
 
     if (el) {
-        
+        $(el).children("ul").each(function (k, ul) {
+            $(ul).children("li").each(function (k, li) {
+                var title = $(li).children("h3").text();
+                var content = $(li).children(".section-content")[0];
+
+                $(content.innerHTML.split("<br><br>")).each(function (k, section) {
+                    try {
+                        var html = $(section);
+                        var obj = {};
+
+                        if (title && title != "") {
+                            obj.for = title;
+                        }
+
+                        obj.references = [];
+
+                        if (obj.for == "Standardization & Formulation") {
+                            obj.text = $(content).text();
+                            
+                            $(content).children("a").each(function (k, a) {
+                                obj.references.push(a.href);
+                            });
+                        } else {
+                            obj.disease = html.siblings("strong").text();
+                            
+                            obj.text = html.text().split(":").pop()
+                                       .replace(/\([0-9|, ]+\)/gi, '')
+                                       .trim();
+                            
+                            html.siblings("a").each(function (k, a) {
+                                obj.references.push(a.href);
+                            });
+                        }
+
+                        if (obj.text != "") {
+                            self.dosingInfo.push(obj);
+                        }
+                    } catch (e) {
+                    }
+                });
+            });
+        });
+    }
+
+/// Adverse Effects
+    var el = document.querySelector("#adverseEvents-content");
+
+    self.adverseEffects = {
+        text: [],
+        domains: []
+    };
+
+    if (el) {
+        $(el).children(".section-content").each(function (k, section) {
+            var obj = {};
+            
+            obj.title = $(section).children("strong")
+                                  .text()
+                                  .replace(":", "");
+
+            obj.text = section.textContent
+                       .split(":").pop()
+                       .replace(/\([0-9|, ]+\)/gi, '')
+                       .trim();
+            
+            obj.references = [];
+
+            $(section).children("a").each(function (k, a) {
+                obj.references.push(a.href);
+            });
+
+            self.adverseEffects.text.push(obj);
+        });
+
+        $(el).children("ul").each(function (k, ul) {
+            var obj = {};
+            var content = $(ul).children("li")[0];
+
+            obj.title = $(content)
+                          .children("h3")
+                          .text()
+                          .trim();
+            
+            obj.text =  $(content).children(".section-content")
+                            .text()
+                            .replace(/\([0-9|, ]+\)/gi, '')                            
+                            .trim();
+            
+            obj.references = [];
+
+            $(content).children(".section-content").children("a").each(function (k, a) {
+                obj.references.push(a.href);
+            });
+
+            self.adverseEffects.domains.push(obj);
+        });
     }
 }
 

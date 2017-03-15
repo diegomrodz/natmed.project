@@ -277,6 +277,241 @@ function Food() {
             self.adverseEffects.domains.push(obj);
         });
     }
+
+/// DRUG INTERACTIONS ------------------------------------------------------
+    var el = document.querySelector("#interactionsWithDrugs-content");
+
+    self.drugInteractions = [];
+
+    if (el) {
+        $(el).find("table").each(function (k, table) {
+            try {
+                var obj = {};
+
+                var text = table.innerHTML
+                                .split("</table>")[1]
+                                .split("<br><br>")[0]
+                                .trim();
+                
+                var html = $("<div>" + text + "</div>");
+
+                obj.content = $(html).text()
+                                     .replace(/\([0-9|, ]+\)/gi, '')
+                                     .trim();
+
+                var title = $(table).find("table");
+
+                obj.title = title.find("h4").text();
+
+                obj.interactionRating = title.find("b span").text();
+
+                var details = title.find("div font")
+                                   .text()
+                                   .split(" • ");
+
+                obj.severityRating = details[0].split("=")[1].trim();
+
+                obj.occurenceRating = details[1].split("=")[1].trim();
+
+                obj.levelOfEvidence = details[2].split("=")[1].trim();
+                
+                obj.references = [];
+
+                html.find("a").each(function (k, a) {
+                    obj.references.push(a.href);
+                });
+
+                self.drugInteractions.push(obj);
+            } catch (ex) {
+            }
+        });
+    }
+
+/// INTERACTIONS WITH HERBS ----------------------------------------------------
+    var el = document.querySelector("#interactionsWithHerbsSupplements-content");
+
+    self.herbsAndSuplementsInteractions = [];
+
+    if (el) {
+        $(el.innerHTML.split("<br><br>")).each(function (k, v) {
+            try {
+                var html = $("<div>" + v + "</div>");
+                var obj = {};
+
+                obj.title = html.find("strong").text();
+
+                var text = html.text().split(":")[1];
+
+                obj.text = text.replace(/\([0-9|, ]+\)/gi, '')
+                               .trim();
+
+                obj.references = [];
+
+                html.find("a").each(function (k, a) {
+                    obj.references.push(a.href);
+                });
+
+                self.herbsAndSuplementsInteractions.push(obj);
+            } catch (ex) {
+            }
+        });
+    }
+
+/// FOOD INTERACTIONS -------------------------------------------------------
+    var el = document.querySelector("#interactionsWithFoods-content");
+
+    self.foodInteractions = [];
+
+    if (el) {
+        $(el.innerHTML.split("<br><br>")).each(function (k, v) {
+            try {
+                var html = $("<div>" + v + "</div>");
+                var obj = {};
+
+                obj.title = html.find("strong").text();
+
+                var text = html.text().split(":")[1];
+
+                obj.text = text.replace(/\([0-9|, ]+\)/gi, '')
+                               .trim();
+
+                obj.references = [];
+
+                html.find("a").each(function (k, a) {
+                    obj.references.push(a.href);
+                });
+
+                self.foodInteractions.push(obj);
+            } catch (ex) {
+            }
+        });
+    }
+
+/// LAB TESTS INTERACTIONS -------------------------------------------------------
+    var el = document.querySelector("#interactionsWithLabTests-content");
+
+    self.labTestsInteractions = [];
+
+    if (el) {
+        $(el.innerHTML.split("<br><br>")).each(function (k, v) {
+            try {
+                var html = $("<div>" + v + "</div>");
+                var obj = {};
+
+                obj.title = html.find("strong").text();
+
+                var text = html.text().split(":")[1];
+
+                obj.text = text.replace(/\([0-9|, ]+\)/gi, '')
+                               .trim();
+
+                obj.references = [];
+
+                html.find("a").each(function (k, a) {
+                    obj.references.push(a.href);
+                });
+
+                self.labTestsInteractions.push(obj);
+            } catch (ex) {
+            }
+        });
+    }
+
+/// DISEASE INTERACTIONS -------------------------------------------------------
+    var el = document.querySelector("#interactionsWithDiseases-content");
+
+    self.diseaseInteractions = [];
+
+    if (el) {
+        $(el.innerHTML.split("<br><br>")).each(function (k, v) {
+            try {
+                var html = $("<div>" + v + "</div>");
+                var obj = {};
+
+                obj.title = html.find("strong").text();
+
+                var text = html.text().split(":")[1];
+
+                obj.text = text.replace(/\([0-9|, ]+\)/gi, '')
+                               .trim();
+
+                obj.references = [];
+
+                html.find("a").each(function (k, a) {
+                    obj.references.push(a.href);
+                });
+
+                self.diseaseInteractions.push(obj);
+            } catch (ex) {
+            }
+        });
+    }
+
+/// MECHANICSM OF ACTION -----------------------------------------------
+    var el = document.querySelector("#mechanismOfAction-content");
+
+    self.mechanismOfAction = [];
+
+    if (el) {
+        $(el.innerHTML.split(/<strong>/g)).each(function (k, v) {
+            try {
+                var html = $("<div>" + v.replace("</strong>", "") + "</div>");
+                var obj = {};
+
+                var parts = html.text().split(":"); 
+
+                obj.title = parts[0];
+
+                var text = parts[1];
+
+                obj.text = text.replace(/\([0-9|, ]+\)/gi, '')
+                               .trim();
+
+                obj.references = [];
+
+                html.find("a").each(function (k, a) {
+                    obj.references.push(a.href);
+                });
+
+                self.mechanismOfAction.push(obj);
+            } catch (ex) {
+            }
+        });
+    }
+
+/// Pharmacokinetics --------------------------------------------------
+    var el = document.querySelector("#pharmacokinetics-content");
+
+    self.pharmacokinetics = [];
+
+    if (el) {
+        $(el.innerHTML.split(/<strong>/g)).each(function (k, v) {
+            try {
+                var html = $("<div>" + v.replace("</strong>", "") + "</div>");
+                var obj = {};
+
+                var parts = html.text().split(":"); 
+
+                obj.title = parts[0];
+
+                var text = parts[1];
+
+                obj.text = text.replace(/\([0-9|, ]+\)/gi, '')
+                               .trim();
+
+                obj.references = [];
+
+                html.find("a").each(function (k, a) {
+                    obj.references.push(a.href);
+                });
+
+                self.pharmacokinetics.push(obj);
+            } catch (ex) {
+            }
+        });
+    }
+
+
 }
 
 console.log(JSON.stringify(new Food(), null, '\t'));

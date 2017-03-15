@@ -1,5 +1,8 @@
 .ipynb_checkpoints
 
+Crawlers/credentials.txt
+Crawlers/chromedriver
+
 Datasets/*.json
 Datasets/*.tsv
 Datasets/*.csv

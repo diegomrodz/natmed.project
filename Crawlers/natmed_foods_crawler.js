@@ -1,16 +1,10 @@
-function download(filename, content) {
-    var pom = document.createElement('a');
-    pom.setAttribute('href', 'data:application/json;charset=utf-8,' + encodeURIComponent(content));
-    pom.setAttribute('download', filename);
-
-    pom.click();
-}
-
 function Food() {
     var self = this;
 
     self.name = $("h1").text();
     self.image_url = $("#Pic img")[0].src;
+
+    self.url = window.location.href;
 
     self.references = [];
 
@@ -19,17 +13,22 @@ function Food() {
 
     var el = $("#scientificName-content");
 
-    if (el.text().match(/Family:(.*)/).length > 0) {
-        self.familyName = el.text().match(/Family:(.*)/)[0]
-                                   .split(":")[1].trim()
-                                   .replace(".", "");
+    if (el) {
+        var fname = el.text().match(/Family:(.*)/);
+
+        if (fname && fname.length > 0) {
+            self.familyName = el.text().match(/Family:(.*)/)[0]
+                                    .split(":")[1].trim()
+                                    .replace(".", "");
+        }
+
+        $(el.children()).each(function (k, v) {
+            if (v.tagName == 'NDB:NAME') {
+                self.scientficNames.push($(v).text());
+            }
+        });
     }
 
-    $(el.children()).each(function (k, v) {
-        if (v.tagName == 'NDB:NAME') {
-            self.scientficNames.push($(v).text());
-        }
-    });
 
 /// BACKGROUND -----------------------------------------------------------------    
     var el = document.querySelector("#background-content");
@@ -38,7 +37,7 @@ function Food() {
         self.description = el.textContent.trim().replace(/\([0-9|, ]+\)/gi, '');
 
         $("#background-content a").each(function (k, v) {
-            self.references.push(v.href);
+            self.references.push({ url: v.href, id: v.textContent });
         });
     }
 
@@ -62,7 +61,7 @@ function Food() {
         self.history = el.textContent.trim().replace(/\([0-9|, ]+\)/gi, '');
 
         $("#history-content a").each(function (k, v) {
-            self.references.push(v.href);
+            self.references.push({ url: v.href, id: v.textContent });
         });
     }
 
@@ -73,7 +72,7 @@ function Food() {
         self.peopleUseThisFor = el.textContent.trim().replace(/\([0-9|, ]+\)/gi, '');
 
         $("#peopleUseThisFor-content a").each(function (k, v) {
-            self.references.push(v.href);
+            self.references.push({ url: v.href, id: v.textContent });
         });
     }
 
@@ -96,7 +95,7 @@ function Food() {
 
                 var parts = obj.text.split(/:/);
 
-                if (parts.length > 1) {
+                if (parts && parts.length > 1) {
                     obj.context = parts[0];
                     obj.text = obj.text.replace(parts[0] + ":", "").trim();
                 }
@@ -107,7 +106,7 @@ function Food() {
                     if (k2 == 0) {
                         obj.url = a.href;
                     } else {
-                        obj.references.push(a.href);
+                        obj.references.push({ url: a.href, id: a.textContent });
                     }
                 });
 
@@ -133,7 +132,7 @@ function Food() {
 
                 var headers = html.children("a strong");
 
-                if (headers.length >= 2) {
+                if (headers && headers.length >= 2) {
                     lastEffectiveness = headers[0].textContent;
                     obj.disease = headers[1].textContent;
                 } else {
@@ -152,17 +151,17 @@ function Food() {
                 obj.references = [];
 
                 html.siblings("a").each(function (k2, a) {
-                    if (headers.length >= 2) {
+                    if (headers && headers.length >= 2) {
                         if (k2 == 1) {
                             obj.url = a.href;
                         } else if (k2 > 1) {
-                            obj.references.push(a.href);
+                            obj.references.push({ url: a.href, id: a.textContent });
                         }
                     } else {
                         if (k2 == 0) {
                             obj.url = a.href;
                         } else {
-                            obj.references.push(a.href);
+                            obj.references.push({ url: a.href, id: a.textContent });
                         }
                     }
                 });
@@ -200,7 +199,7 @@ function Food() {
                             obj.text = $(content).text();
                             
                             $(content).children("a").each(function (k, a) {
-                                obj.references.push(a.href);
+                                obj.references.push({ url: a.href, id: a.textContent });
                             });
                         } else {
                             obj.disease = html.siblings("strong").text();
@@ -210,7 +209,7 @@ function Food() {
                                        .trim();
                             
                             html.siblings("a").each(function (k, a) {
-                                obj.references.push(a.href);
+                                obj.references.push({ url: a.href, id: a.textContent });
                             });
                         }
 
@@ -248,7 +247,7 @@ function Food() {
             obj.references = [];
 
             $(section).children("a").each(function (k, a) {
-                obj.references.push(a.href);
+                obj.references.push({ url: a.href, id: a.textContent });
             });
 
             self.adverseEffects.text.push(obj);
@@ -271,7 +270,7 @@ function Food() {
             obj.references = [];
 
             $(content).children(".section-content").children("a").each(function (k, a) {
-                obj.references.push(a.href);
+                obj.references.push({ url: a.href, id: a.textContent });
             });
 
             self.adverseEffects.domains.push(obj);
@@ -318,7 +317,7 @@ function Food() {
                 obj.references = [];
 
                 html.find("a").each(function (k, a) {
-                    obj.references.push(a.href);
+                    obj.references.push({ url: a.href, id: a.textContent });
                 });
 
                 self.drugInteractions.push(obj);
@@ -348,7 +347,7 @@ function Food() {
                 obj.references = [];
 
                 html.find("a").each(function (k, a) {
-                    obj.references.push(a.href);
+                    obj.references.push({ url: a.href, id: a.textContent });
                 });
 
                 self.herbsAndSuplementsInteractions.push(obj);
@@ -378,7 +377,7 @@ function Food() {
                 obj.references = [];
 
                 html.find("a").each(function (k, a) {
-                    obj.references.push(a.href);
+                    obj.references.push({ url: a.href, id: a.textContent });
                 });
 
                 self.foodInteractions.push(obj);
@@ -408,7 +407,7 @@ function Food() {
                 obj.references = [];
 
                 html.find("a").each(function (k, a) {
-                    obj.references.push(a.href);
+                    obj.references.push({ url: a.href, id: a.textContent });
                 });
 
                 self.labTestsInteractions.push(obj);
@@ -438,7 +437,7 @@ function Food() {
                 obj.references = [];
 
                 html.find("a").each(function (k, a) {
-                    obj.references.push(a.href);
+                    obj.references.push({ url: a.href, id: a.textContent });
                 });
 
                 self.diseaseInteractions.push(obj);
@@ -470,7 +469,7 @@ function Food() {
                 obj.references = [];
 
                 html.find("a").each(function (k, a) {
-                    obj.references.push(a.href);
+                    obj.references.push({ url: a.href, id: a.textContent });
                 });
 
                 self.mechanismOfAction.push(obj);
@@ -502,7 +501,7 @@ function Food() {
                 obj.references = [];
 
                 html.find("a").each(function (k, a) {
-                    obj.references.push(a.href);
+                    obj.references.push({ url: a.href, id: a.textContent });
                 });
 
                 self.pharmacokinetics.push(obj);
@@ -514,4 +513,4 @@ function Food() {
 
 }
 
-console.log(JSON.stringify(new Food(), null, '\t'));
+return JSON.stringify(new Food(), null, '\t');

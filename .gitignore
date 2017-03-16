@@ -1,16 +1,13 @@
 .ipynb_checkpoints
 
-Crawlers/credentials.txt
-Crawlers/chromedriver
+credentials.txt
+chromedriver
 
 Datasets/*.json
 Datasets/*.tsv
 Datasets/*.csv
 Datasets/*.zip
 Datasets/*.gz
-
-Datasets/graphdb
-Datasets/graphlab
 
 Dumps/*.json
 Dumps/*.csv

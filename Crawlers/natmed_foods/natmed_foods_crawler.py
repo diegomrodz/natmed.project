@@ -9,6 +9,8 @@ NATMED_LINKS = "./links.txt"
 NATMED_CRAWLER = "./natmed_foods_crawler.js"
 NATMED_CREDENTIALS = "./credentials.txt"
 
+CHROMEDRIVER = "./chromedriver"
+
 NATMED_CN = "mongodb://localhost:27017"
 NATMED_DB = "natmed"
 NATMED_COL = "foods"
@@ -48,23 +50,36 @@ def consume_output(output, col):
 
     col.insert_one(obj)
 
+    print("Food {0} saved with id: {1}".format(obj['name'], obj['_id']))
+
 if __name__ == '__main__':
     client = MongoClient(NATMED_CN)
     col = client[NATMED_DB][NATMED_COL]
     
-    driver = webdriver.Chrome(executable_path="./chromedriver")
+    driver = webdriver.Chrome(executable_path=CHROMEDRIVER)
 
     crawler = get_crawler()
 
     try:
         with open(NATMED_LINKS, "r") as f:
-            for url in [line.strip() for line in f.readlines() if line != ""]: 
+            for url in [line.strip() for line in f.readlines() if line != ""]:
+                print("Accessing url: {0}".format(url))
+                
                 driver.get(url)
 
                 if not is_logged(driver):
+                    print("User not logged in. Loggin...")
+                    
                     login(driver)
+                    
+                    print("User logged on!")
+
+                print("Running script...")
                 
                 output = driver.execute_script(crawler)
+                
+                print("Script executed with sucess!")
+
                 consume_output(output, col)
     finally:
         driver.close()

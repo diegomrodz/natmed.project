@@ -2,7 +2,12 @@ function Food() {
     var self = this;
 
     self.name = $("h1").text();
-    self.image_url = $("#Pic img")[0].src;
+    
+    var image = $("#Pic img");
+    
+    if (image && image.length > 0) {
+        self.image_url = image.src;
+    }
 
     self.url = window.location.href;
 

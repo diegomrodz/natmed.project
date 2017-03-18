@@ -6,6 +6,16 @@ NATMED_CN = "mongodb://localhost:27017"
 NATMED_DB = "natmed"
 NATMED_COL = "foods"
 
+POSSIBLE_EFFECTIVES = [
+    "LIKELY INEFFECTIVE",
+    "INEFFECTIVE",
+    "EFFECTIVE",
+    "LIKELY EFFECTIVE",
+    "POSSIBLY EFFECTIVE",
+    "INSUFFICIENT RELIABLE EVIDENCE to RATE",
+    "POSSIBLY INEFFECTIVE"
+]
+
 def new_scientific_name_node(tx, name):
     tx.run("""
         MERGE (sci_name:ScientificName {id: {name}})
@@ -90,6 +100,61 @@ def new_context_rel(tx, ctx, _cls, _id):
         id=_id,
         ctx=ctx)
 
+def new_effectiveness_node(tx, info):
+    tx.run("""
+        MERGE (info:EffectivenessInfo {id: {id}})
+            ON CREATE SET info.id={id},
+                info.text={text}
+        """,
+        id=info['id'],
+        text=info['text'])    
+
+def new_effectiveness_rel(tx, info, food):
+    if not info['effectiveness'] in POSSIBLE_EFFECTIVES:
+        info['effectiveness'] = "TO BE DEFINED"
+
+    tx.run("""
+        MATCH (a:Food {id: {id}})
+        MATCH (b:EffectivenessInfo {id: {info}})
+        MERGE (a)-[:IS_%s]->(b);
+        """ % info['effectiveness'].replace(" ", "_"),
+        id=food['_id'],
+        info=info['id'])
+
+def new_disease_node(tx, ds):
+    tx.run("""
+        MERGE (a:Disease {id: {id}})
+            ON CREATE SET a.id={id}
+        """,
+        id=ds)    
+
+def new_disease_rel(tx, ds, _cls, _id, _rel="IN_RELATION_TO"):
+    tx.run("""
+        MATCH (a:%s {id: {id}})
+        MATCH (b:Disease {id: {ds}})
+        MERGE (a)-[:%s]->(b);
+        """ % (_cls, _rel),
+        ds=ds,
+        id=_id)
+
+def new_dosing_info_node(tx, info):
+    tx.run("""
+        MERGE (info:DosingInfo {id: {id}})
+            ON CREATE SET info.id={id},
+                info.text={text}
+        """,
+        id=info['id'],
+        text=info['text'])
+
+def new_dosing_info_rel(tx, info, food):
+    tx.run("""
+        MATCH (a:Food {id: {food}})
+        MATCH (b:DosingInfo {id: {info}})
+        MERGE (a)-[:IS_DOSED_WITH]->(b);
+        """,
+        food=food['_id'],
+        info=info['id'])
+
 def new_food_node(tx, food):
     tx.run("""
         MERGE (food:Food {id: {id}})
@@ -131,12 +196,61 @@ def insert_food(tx, food):
     if food.get('safetyInfo'):
         for info in [x for x in food.get('safetyInfo') if x.get('safety') != None]: # Fix
             info['id'] = hashlib.md5(info['text'].encode()).hexdigest()
+            
             new_safety_info_node(tx, info)
             new_safety_info_rel(tx, info, food)
 
             if info.get('context'):
                 new_context_node(tx, info.get('context'))
                 new_context_rel(tx, info.get('context'), "SafetyInfo", info['id'])
+            
+            for ref in info.get('references'):
+                new_reference_node(tx, ref)
+                new_reference_rel(tx, ref, "SafetyInfo", info['id'])
+    
+    if food.get('effectivenessInfo'):
+        for info in food.get('effectivenessInfo'):
+            info['id'] = hashlib.md5(info['text'].encode()).hexdigest()
+            
+            new_effectiveness_node(tx, info)
+            new_effectiveness_rel(tx, info, food)
+            
+            new_disease_node(tx, info['disease'])
+            new_disease_rel(tx, info['disease'], "EffectivenessInfo", info['id'])
+
+            for ref in info.get('references'):
+                new_reference_node(tx, ref)
+                new_reference_rel(tx, ref, "EffectivenessInfo", info['id'])
+
+    if food.get('dosingInfo'):
+        for info in food.get('dosingInfo'):
+            info['id'] = hashlib.md5(info['text'].encode()).hexdigest()
+            
+            new_dosing_info_node(tx, info)
+            new_dosing_info_rel(tx, info, food)
+
+            if info.get('disease'):
+                new_disease_node(tx, info['disease'])
+                new_disease_rel(tx, info['disease'], "DosingInfo", info['id'], "IS_DOSED_FOR")
+
+            if info.get('for'):            
+                new_context_node(tx, info['for'])
+                new_context_rel(tx, info['for'], 'DosingInfo', info['id'])
+
+            for ref in info.get('references'):
+                new_reference_node(tx, ref)
+                new_reference_rel(tx, ref, "DosingInfo", info['id'])
+    
+    if food.get('adverseEffects'):
+        adv = food.get('adverseEffects')
+
+        if adv.get('text'):
+            for text in adv.get('text'):
+                pass
+        
+        if adv.get('domains'):
+            for domain in adv.get('domains'):
+                pass
 
 if __name__ == '__main__':
     driver = GraphDatabase.driver("bolt://localhost:7687", auth=basic_auth("neo4j", "naturalmed"))

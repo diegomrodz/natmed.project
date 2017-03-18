@@ -23,13 +23,13 @@ def new_scientific_name_node(tx, name):
         """,
         name=name)
 
-def new_scientific_name_rel(tx, name, food):
+def new_scientific_name_rel(tx, name, medicine):
     tx.run("""
-        MATCH (a:Food {id: {id}})
+        MATCH (a:Medicine {id: {id}})
         MATCH (b:ScientificName {id: {name}})
         MERGE (a)-[:ALSO_KNOW_AS]->(b);
         """,
-        id=food['_id'],
+        id=medicine['_id'],
         name=name)
 
 def new_synonymous_node(tx, name):
@@ -39,13 +39,13 @@ def new_synonymous_node(tx, name):
         """,
         name=name)
 
-def new_synonymous_rel(tx, name, food):
+def new_synonymous_rel(tx, name, medicine):
     tx.run("""
-        MATCH (a:Food {id: {id}})
+        MATCH (a:Medicine {id: {id}})
         MATCH (b:Synonymous {id: {name}})
         MERGE (a)-[:ALSO_KNOW_AS]->(b);
         """,
-        id=food['_id'],
+        id=medicine['_id'],
         name=name)
 
 def new_reference_node(tx, ref):
@@ -75,13 +75,13 @@ def new_safety_info_node(tx, info):
         id=info['id'],
         text=info['text'])
 
-def new_safety_info_rel(tx, info, food):
+def new_safety_info_rel(tx, info, medicine):
     tx.run("""
-        MATCH (a:Food {id: {id}})
+        MATCH (a:Medicine {id: {id}})
         MATCH (b:SafetyInfo {id: {info}})
         MERGE (a)-[:IS_%s]->(b);
         """ % info['safety'].replace(" ", "_"),
-        id=food['_id'],
+        id=medicine['_id'],
         info=info['id'])
 
 def new_context_node(tx, ctx):
@@ -109,16 +109,16 @@ def new_effectiveness_node(tx, info):
         id=info['id'],
         text=info['text'])    
 
-def new_effectiveness_rel(tx, info, food):
+def new_effectiveness_rel(tx, info, medicine):
     if not info['effectiveness'] in POSSIBLE_EFFECTIVES:
         info['effectiveness'] = "TO BE DEFINED"
 
     tx.run("""
-        MATCH (a:Food {id: {id}})
+        MATCH (a:Medicine {id: {id}})
         MATCH (b:EffectivenessInfo {id: {info}})
         MERGE (a)-[:IS_%s]->(b);
         """ % info['effectiveness'].replace(" ", "_"),
-        id=food['_id'],
+        id=medicine['_id'],
         info=info['id'])
 
 def new_disease_node(tx, ds):
@@ -146,59 +146,128 @@ def new_dosing_info_node(tx, info):
         id=info['id'],
         text=info['text'])
 
-def new_dosing_info_rel(tx, info, food):
+def new_dosing_info_rel(tx, info, medicine):
     tx.run("""
-        MATCH (a:Food {id: {food}})
+        MATCH (a:Medicine {id: {medicine}})
         MATCH (b:DosingInfo {id: {info}})
         MERGE (a)-[:IS_DOSED_WITH]->(b);
         """,
-        food=food['_id'],
+        medicine=medicine['_id'],
         info=info['id'])
 
-def new_food_node(tx, food):
+def new_adverse_effect_node(tx, adv):
     tx.run("""
-        MERGE (food:Food {id: {id}})
-        ON CREATE SET food.id = {id},
-            food.name = {name},
-            food.url = {url},
-            food.family_name = {family_name},
-            food.description = {description},
-            food.history = {history},
-            food.used_for = {used_for}
+        MERGE (adv:AdverseEffect {id: {id}})
+            ON CREATE SET adv.id={id},
+                adv.text={text}
         """,
-        id=food.get('_id'),
-        name=food.get('name'),
-        url=food.get('url'),
-        family_name=food.get('familyName'),
-        description=food.get('description'),
-        history=food.get('history'),
-        used_for=food.get('peopleUseThisFor'))
+        id=adv['id'],
+        text=adv['text'])
 
-def insert_food(tx, food):
-    print("Inserting the Food: {0} (#{1})".format(food['name'], food['_id']))
-    new_food_node(tx, food)
+def new_adverse_effect_rel(tx, adv, medicine):
+    tx.run("""
+        MATCH (a:Medicine {id: {medicine}})
+        MATCH (b:AdverseEffect {id: {adv}})
+        MERGE (a)-[:MAY_CAUSE_ADVERSE_EFFECT]->(b);
+        """,
+        medicine=medicine['_id'],
+        adv=adv['id'])
 
-    if food.get('scientficNames'):
-        for sci_name in food.get('scientficNames'):
+def new_drug_interaction_node(tx, drug):
+    tx.run("""
+        MERGE (di:DrugInteraction {id: {id}})
+            ON CREATE SET di.id={id},
+                di.text={text},
+                di.rating={rating},
+                di.severity={severity},
+                di.occurence={occurence},
+                di.evidence={evidence}
+        """,
+        id=drug['id'],
+        text=drug['content'],
+        rating=drug['interactionRating'],
+        severity=drug['severityRating'],
+        occurence=drug['occurenceRating'],
+        evidence=drug['levelOfEvidence'])
+
+def new_drug_interaction_rel(tx, di, medicine):
+    tx.run("""
+        MATCH (a:Medicine {id: {medicine}})
+        MATCH (b:DrugInteraction {id: {di}})
+        MERGE (a)-[:HAS_%s_INTERACTION]->(b);
+        """ % di['interactionRating'].upper().replace(" ", "_"),
+        medicine=medicine['_id'],
+        di=di['id'])
+
+def new_adverse_effect_rel(tx, adv, medicine):
+    tx.run("""
+        MATCH (a:Medicine {id: {medicine}})
+        MATCH (b:AdverseEffect {id: {adv}})
+        MERGE (a)-[:MAY_CAUSE_ADVERSE_EFFECT]->(b);
+        """,
+        medicine=medicine['_id'],
+        adv=adv['id'])
+
+def new_drug_node(tx, drug):
+    tx.run("""
+        MERGE (drug:Drug {id: {id}})
+            ON CREATE SET drug.id={id}
+        """,
+        id=drug)
+
+def new_drug_rel(tx, drug, _cls, _id, _rel="IN_RELATION_TO"):
+    tx.run("""
+        MATCH (a:%s {id: {id}})
+        MATCH (b:Drug {id: {d}})
+        MERGE (a)-[:%s]->(b);
+        """ % (_cls, _rel),
+        d=drug,
+        id=_id)
+
+def new_medicine_node(tx, medicine):
+    tx.run("""
+        MERGE (medicine:Medicine {id: {id}})
+        ON CREATE SET medicine.id = {id},
+            medicine.name = {name},
+            medicine.url = {url},
+            medicine.family_name = {family_name},
+            medicine.description = {description},
+            medicine.history = {history},
+            medicine.used_for = {used_for}
+        """,
+        id=medicine.get('_id'),
+        name=medicine.get('name'),
+        url=medicine.get('url'),
+        family_name=medicine.get('familyName'),
+        description=medicine.get('description'),
+        history=medicine.get('history'),
+        used_for=medicine.get('peopleUseThisFor'))
+
+def insert_medicine(tx, medicine):
+    print("Inserting the medicine: {0} (#{1})".format(medicine['name'], medicine['_id']))
+    new_medicine_node(tx, medicine)
+
+    if medicine.get('scientficNames'):
+        for sci_name in medicine.get('scientficNames'):
             new_scientific_name_node(tx, sci_name)
-            new_scientific_name_rel(tx, sci_name, food)
+            new_scientific_name_rel(tx, sci_name, medicine)
 
-    if food.get('alsoKnowAs'):
-        for synonymous in food.get('alsoKnowAs'):
+    if medicine.get('alsoKnowAs'):
+        for synonymous in medicine.get('alsoKnowAs'):
             new_synonymous_node(tx, synonymous)
-            new_synonymous_rel(tx, synonymous, food)
+            new_synonymous_rel(tx, synonymous, medicine)
     
-    if food.get('references'):
-        for reference in food.get('references'):
+    if medicine.get('references'):
+        for reference in medicine.get('references'):
             new_reference_node(tx, reference)
-            new_reference_rel(tx, reference, "Food", food['_id'])
+            new_reference_rel(tx, reference, "medicine", medicine['_id'])
     
-    if food.get('safetyInfo'):
-        for info in [x for x in food.get('safetyInfo') if x.get('safety') != None]: # Fix
+    if medicine.get('safetyInfo'):
+        for info in [x for x in medicine.get('safetyInfo') if x.get('safety') != None]: # Fix
             info['id'] = hashlib.md5(info['text'].encode()).hexdigest()
             
             new_safety_info_node(tx, info)
-            new_safety_info_rel(tx, info, food)
+            new_safety_info_rel(tx, info, medicine)
 
             if info.get('context'):
                 new_context_node(tx, info.get('context'))
@@ -208,12 +277,12 @@ def insert_food(tx, food):
                 new_reference_node(tx, ref)
                 new_reference_rel(tx, ref, "SafetyInfo", info['id'])
     
-    if food.get('effectivenessInfo'):
-        for info in food.get('effectivenessInfo'):
+    if medicine.get('effectivenessInfo'):
+        for info in medicine.get('effectivenessInfo'):
             info['id'] = hashlib.md5(info['text'].encode()).hexdigest()
             
             new_effectiveness_node(tx, info)
-            new_effectiveness_rel(tx, info, food)
+            new_effectiveness_rel(tx, info, medicine)
             
             new_disease_node(tx, info['disease'])
             new_disease_rel(tx, info['disease'], "EffectivenessInfo", info['id'])
@@ -222,12 +291,12 @@ def insert_food(tx, food):
                 new_reference_node(tx, ref)
                 new_reference_rel(tx, ref, "EffectivenessInfo", info['id'])
 
-    if food.get('dosingInfo'):
-        for info in food.get('dosingInfo'):
+    if medicine.get('dosingInfo'):
+        for info in medicine.get('dosingInfo'):
             info['id'] = hashlib.md5(info['text'].encode()).hexdigest()
             
             new_dosing_info_node(tx, info)
-            new_dosing_info_rel(tx, info, food)
+            new_dosing_info_rel(tx, info, medicine)
 
             if info.get('disease'):
                 new_disease_node(tx, info['disease'])
@@ -241,16 +310,47 @@ def insert_food(tx, food):
                 new_reference_node(tx, ref)
                 new_reference_rel(tx, ref, "DosingInfo", info['id'])
     
-    if food.get('adverseEffects'):
-        adv = food.get('adverseEffects')
+    if medicine.get('adverseEffects'):
+        adv = medicine.get('adverseEffects')
 
         if adv.get('text'):
             for text in adv.get('text'):
-                pass
+                text['id'] = hashlib.md5(text['text'].encode()).hexdigest()
+
+                new_adverse_effect_node(tx, text)
+                new_adverse_effect_rel(tx, text, medicine)
+
+                for ref in text.get('references'):
+                    new_reference_node(tx, ref)
+                    new_reference_rel(tx, ref, "AdverseEffect", text['id'])
         
         if adv.get('domains'):
             for domain in adv.get('domains'):
-                pass
+                domain['id'] = hashlib.md5(domain['text'].encode()).hexdigest()
+
+                new_adverse_effect_node(tx, domain)
+                new_adverse_effect_rel(tx, domain, medicine)
+
+                new_context_node(tx, domain['title'])
+                new_context_rel(tx, domain['title'], "AdverseEffect", domain['id'])
+
+                for ref in domain.get('references'):
+                    new_reference_node(tx, ref)
+                    new_reference_rel(tx, ref, "AdverseEffect", domain['id'])
+    
+    if medicine.get('drugInteractions'):
+        for drug in medicine.get('drugInteractions'):
+            drug['id'] = hashlib.md5(drug['content'].encode()).hexdigest()
+
+            new_drug_interaction_node(tx, drug)
+            new_drug_interaction_rel(tx, drug, medicine)
+
+            new_drug_node(tx, drug['title'])
+            new_drug_rel(tx, drug['title'], "DrugInteraction", drug['id'], "WHEN_USED_WITH")
+
+            for ref in drug.get('references'):
+                new_reference_node(tx, ref)
+                new_reference_rel(tx, ref, "DrugInteraction", drug['id'])
 
 if __name__ == '__main__':
     driver = GraphDatabase.driver("bolt://localhost:7687", auth=basic_auth("neo4j", "naturalmed"))
@@ -262,11 +362,11 @@ if __name__ == '__main__':
     
     try:
         tx_count = 0
-        for food in col.find().limit(15):
+        for medicine in col.find().limit(15):
             with session.begin_transaction() as tx:
                 tx_count += 1
                 print("Beggining Neo4j Transaction: {0}".format(tx_count))
-                insert_food(tx, food)
+                insert_medicine(tx, medicine)
                 print("Ending Neo4j Transaction\n")
     finally:
         print("Ending Neo4j Session")

@@ -649,7 +649,7 @@ if __name__ == '__main__':
             except Exception:
                 print("There has been an error!!")
             finally:
-                print("Ending Neo4j Transaction\n")
+                print("Ending Neo4j Transaction")
 
                 tx_end = time.time()
 

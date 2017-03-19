@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 from neo4j.v1 import GraphDatabase, basic_auth
 import hashlib
+import time
 
 NATMED_CN = "mongodb://localhost:27017"
 NATMED_DB = "natmed"
@@ -632,15 +633,32 @@ if __name__ == '__main__':
     print("Beggining Neo4j Session\n")
     session = driver.session() 
     
+    session_start = time.time()
+
     try:
         tx_count = 0
-        for medicine in col.find():
-            with session.begin_transaction() as tx:
-                tx_count += 1
-                print("Beggining Neo4j Transaction: {0}".format(tx_count))
-                insert_medicine(tx, medicine)
+        
+        for medicine in list(col.find()):
+            tx_start = time.time()
+
+            try:
+                with session.begin_transaction() as tx:
+                    tx_count += 1
+                    print("Beggining Neo4j Transaction: {0}".format(tx_count))
+                    insert_medicine(tx, medicine)
+            except Exception:
+                print("There has been an error!!")
+            finally:
                 print("Ending Neo4j Transaction\n")
+
+                tx_end = time.time()
+
+                print("This transaction has elapsed in {0} seconds\n".format(tx_end - tx_start))
     finally:
         print("Ending Neo4j Session")
         session.close()
-        print("Ending Script")
+        print("Ending Script\n")
+
+        session_end = time.time()
+
+        print("The entire session has elapsed in {0} seconds".format(session_end - session_start))

@@ -21,7 +21,7 @@ def new_scientific_name_node(tx, name):
         MERGE (sci_name:ScientificName {id: {name}})
             ON CREATE SET sci_name.id={name}
         """,
-        name=name)
+        name=name.title())
 
 def new_scientific_name_rel(tx, name, medicine):
     tx.run("""
@@ -30,14 +30,14 @@ def new_scientific_name_rel(tx, name, medicine):
         MERGE (a)-[:ALSO_KNOW_AS]->(b);
         """,
         id=medicine['_id'],
-        name=name)
+        name=name.title())
 
 def new_synonymous_node(tx, name):
     tx.run("""
         MERGE (synonymous:Synonymous {id: {name}})
             ON CREATE SET synonymous.id={name}
         """,
-        name=name)
+        name=name.title())
 
 def new_synonymous_rel(tx, name, medicine):
     tx.run("""
@@ -46,7 +46,7 @@ def new_synonymous_rel(tx, name, medicine):
         MERGE (a)-[:ALSO_KNOW_AS]->(b);
         """,
         id=medicine['_id'],
-        name=name)
+        name=name.title())
 
 def new_reference_node(tx, ref):
     tx.run("""
@@ -89,7 +89,7 @@ def new_context_node(tx, ctx):
         MERGE (ctx:Context {id: {id}})
             ON CREATE SET ctx.id={id}
         """,
-        id=ctx)
+        id=ctx.title())
 
 def new_context_rel(tx, ctx, _cls, _id):
     tx.run("""
@@ -98,7 +98,7 @@ def new_context_rel(tx, ctx, _cls, _id):
         MERGE (a)-[:IS_CONTEXTUALIZED_IN]->(b);
         """ % _cls,
         id=_id,
-        ctx=ctx)
+        ctx=ctx.title())
 
 def new_effectiveness_node(tx, info):
     tx.run("""
@@ -126,7 +126,7 @@ def new_disease_node(tx, ds):
         MERGE (a:Disease {id: {id}})
             ON CREATE SET a.id={id}
         """,
-        id=ds)    
+        id=ds.title())    
 
 def new_disease_rel(tx, ds, _cls, _id, _rel="IN_RELATION_TO"):
     tx.run("""
@@ -134,7 +134,7 @@ def new_disease_rel(tx, ds, _cls, _id, _rel="IN_RELATION_TO"):
         MATCH (b:Disease {id: {ds}})
         MERGE (a)-[:%s]->(b);
         """ % (_cls, _rel),
-        ds=ds,
+        ds=ds.title(),
         id=_id)
 
 def new_dosing_info_node(tx, info):
@@ -213,7 +213,7 @@ def new_drug_node(tx, drug):
         MERGE (drug:Drug {id: {id}})
             ON CREATE SET drug.id={id}
         """,
-        id=drug)
+        id=drug.title())
 
 def new_drug_rel(tx, drug, _cls, _id, _rel="IN_RELATION_TO"):
     tx.run("""
@@ -221,7 +221,195 @@ def new_drug_rel(tx, drug, _cls, _id, _rel="IN_RELATION_TO"):
         MATCH (b:Drug {id: {d}})
         MERGE (a)-[:%s]->(b);
         """ % (_cls, _rel),
-        d=drug,
+        d=drug.title(),
+        id=_id)
+
+def new_hsi_node(tx, hsi):
+    tx.run("""
+        MERGE (hsi:HerbSuplementsInteraction {id: {id}})
+            ON CREATE SET hsi.id={id},
+                hsi.text={text}
+        """,
+        id=hsi['id'],
+        text=hsi['text'])
+
+def new_hsi_rel(tx, hsi, medicine):
+    tx.run("""
+        MATCH (a:Medicine {id: {medicine}})
+        MATCH (b:HerbSuplementsInteraction {id: {hsi}})
+        MERGE (a)-[:MAY_INTERACT]->(b);
+        """,
+        medicine=medicine['_id'],
+        hsi=hsi['id'])
+
+def new_hs_node(tx, hs):
+    tx.run("""
+        MERGE (hs:HerbSuplement {id: {id}})
+            ON CREATE SET hs.id={id}
+        """,
+        id=hs.title())
+
+def new_hs_rel(tx, hs, _cls, _id, _rel="IN_RELATION_TO"):
+    tx.run("""
+        MATCH (a:%s {id: {id}})
+        MATCH (b:HerbSuplement {id: {hs}})
+        MERGE (a)-[:%s]->(b);
+        """ % (_cls, _rel),
+        hs=hs.title(),
+        id=_id)
+
+def new_fi_node(tx, fi):
+    tx.run("""
+        MERGE (fi:FoodInteraction {id: {id}})
+            ON CREATE SET fi.id={id},
+                fi.text={text}
+        """,
+        id=fi['id'],
+        text=fi['text'])
+
+def new_fi_rel(tx, fi, medicine):
+    tx.run("""
+        MATCH (a:Medicine {id: {medicine}})
+        MATCH (b:FoodInteraction {id: {fi}})
+        MERGE (a)-[:MAY_INTERACT]->(b);
+        """,
+        medicine=medicine['_id'],
+        fi=fi['id'])
+
+def new_food_node(tx, food):
+    tx.run("""
+        MERGE (food:Food {id: {id}})
+            ON CREATE SET food.id={id}
+        """,
+        id=food.title())
+
+def new_food_rel(tx, food, _cls, _id, _rel="IN_RELATION_TO"):
+    tx.run("""
+        MATCH (a:%s {id: {id}})
+        MATCH (b:Food {id: {food}})
+        MERGE (a)-[:%s]->(b);
+        """ % (_cls, _rel),
+        food=food.title(),
+        id=_id)
+
+def new_lti_node(tx, lti):
+    tx.run("""
+        MERGE (lti:LaboratoryInteraction {id: {id}})
+            ON CREATE SET lti.id={id},
+                lti.text={text}
+        """,
+        id=lti['id'],
+        text=lti['text'])
+
+def new_lti_rel(tx, lti, medicine):
+    tx.run("""
+        MATCH (a:Medicine {id: {medicine}})
+        MATCH (b:LaboratoryInteraction {id: {lti}})
+        MERGE (a)-[:MAY_INTERACT]->(b);
+        """,
+        medicine=medicine['_id'],
+        lti=lti['id'])
+
+def new_lt_node(tx, lt):
+    tx.run("""
+        MERGE (lt:LaboratoryTest {id: {id}})
+            ON CREATE SET lt.id={id}
+        """,
+        id=lt.title())
+
+def new_lt_rel(tx, lt, _cls, _id, _rel="IN_RELATION_TO"):
+    tx.run("""
+        MATCH (a:%s {id: {id}})
+        MATCH (b:LaboratoryTest {id: {lt}})
+        MERGE (a)-[:%s]->(b);
+        """ % (_cls, _rel),
+        lt=lt.title(),
+        id=_id)
+
+def new_di_node(tx, di):
+    tx.run("""
+        MERGE (di:DiseaseInteraction {id: {id}})
+            ON CREATE SET di.id={id},
+                di.text={text}
+        """,
+        id=di['id'],
+        text=di['text'])
+
+def new_di_rel(tx, di, medicine):
+    tx.run("""
+        MATCH (a:Medicine {id: {medicine}})
+        MATCH (b:DiseaseInteraction {id: {di}})
+        MERGE (a)-[:MAY_INTERACT]->(b);
+        """,
+        medicine=medicine['_id'],
+        di=di['id'])
+
+def new_mai_node(tx, mai):
+    tx.run("""
+        MERGE (mai:MechanismOfActionInteraction {id: {id}})
+            ON CREATE SET mai.id={id},
+                mai.text={text}
+        """,
+        id=mai['id'],
+        text=mai['text'])
+
+def new_mai_rel(tx, mai, medicine):
+    tx.run("""
+        MATCH (a:Medicine {id: {medicine}})
+        MATCH (b:MechanismOfActionInteraction {id: {mai}})
+        MERGE (a)-[:MAY_INTERACT]->(b);
+        """,
+        medicine=medicine['_id'],
+        mai=mai['id'])
+
+def new_ma_node(tx, ma):
+    tx.run("""
+        MERGE (ma:MechanismOfAction {id: {id}})
+            ON CREATE SET ma.id={id}
+        """,
+        id=ma.title())
+
+def new_ma_rel(tx, ma, _cls, _id, _rel="IN_RELATION_TO"):
+    tx.run("""
+        MATCH (a:%s {id: {id}})
+        MATCH (b:MechanismOfAction {id: {ma}})
+        MERGE (a)-[:%s]->(b);
+        """ % (_cls, _rel),
+        ma=ma.title(),
+        id=_id)
+
+def new_pki_node(tx, pki):
+    tx.run("""
+        MERGE (pki:PharmacokineticsInteraction {id: {id}})
+            ON CREATE SET pki.id={id},
+                pki.text={text}
+        """,
+        id=pki['id'],
+        text=pki['text'])
+
+def new_pki_rel(tx, pki, medicine):
+    tx.run("""
+        MATCH (a:Medicine {id: {medicine}})
+        MATCH (b:PharmacokineticsInteraction {id: {pki}})
+        MERGE (a)-[:MAY_INTERACT]->(b);
+        """,
+        medicine=medicine['_id'],
+        pki=pki['id'])
+
+def new_pk_node(tx, pk):
+    tx.run("""
+        MERGE (pk:Pharmacokinetics {id: {id}})
+            ON CREATE SET pk.id={id}
+        """,
+        id=pk.title())
+
+def new_pk_rel(tx, pk, _cls, _id, _rel="IN_RELATION_TO"):
+    tx.run("""
+        MATCH (a:%s {id: {id}})
+        MATCH (b:Pharmacokinetics {id: {pk}})
+        MERGE (a)-[:%s]->(b);
+        """ % (_cls, _rel),
+        pk=pk.title(),
         id=_id)
 
 def new_medicine_node(tx, medicine):
@@ -236,7 +424,7 @@ def new_medicine_node(tx, medicine):
             medicine.used_for = {used_for}
         """,
         id=medicine.get('_id'),
-        name=medicine.get('name'),
+        name=medicine.get('name').title(),
         url=medicine.get('url'),
         family_name=medicine.get('familyName'),
         description=medicine.get('description'),
@@ -351,6 +539,90 @@ def insert_medicine(tx, medicine):
             for ref in drug.get('references'):
                 new_reference_node(tx, ref)
                 new_reference_rel(tx, ref, "DrugInteraction", drug['id'])
+    
+    if medicine.get('herbsAndSuplementsInteractions'):
+        for hsi in medicine.get('herbsAndSuplementsInteractions'):
+            hsi['id'] = hashlib.md5(hsi['text'].encode()).hexdigest()
+
+            new_hsi_node(tx, hsi)
+            new_hsi_rel(tx, hsi, medicine)
+
+            new_hs_node(tx, hsi['title'])
+            new_hs_rel(tx, hsi['title'], "HerbSuplementInteraction", hsi['id'], "WHEN_USED_WITH")
+
+            for ref in hsi.get('references'):
+                new_reference_node(tx, ref)
+                new_reference_rel(tx, ref, "HerbSuplementInteraction", hsi['id'])
+    
+    if medicine.get('foodInteractions'):
+        for fi in medicine.get('foodInteractions'):
+            fi['id'] = hashlib.md5(fi['text'].encode()).hexdigest()
+
+            new_fi_node(tx, fi)
+            new_fi_rel(tx, fi, medicine)
+
+            new_food_node(tx, fi['title'])
+            new_food_rel(tx, fi['title'], "FoodInteraction", fi['id'], "WHEN_CONSUMED_WITH")
+
+            for ref in fi.get('references'):
+                new_reference_node(tx, ref)
+                new_reference_rel(tx, ref, "FoodInteraction", fi['id'])
+    
+    if medicine.get('labTestsInteractions'):
+        for lti in medicine.get('labTestsInteractions'):
+            lti['id'] = hashlib.md5(lti['text'].encode()).hexdigest()
+
+            new_lti_node(tx, lti)
+            new_lti_rel(tx, lti, medicine)
+
+            new_lt_node(tx, lti['title'])
+            new_lt_rel(tx, lti['title'], "LaboratoryInteraction", lti['id'], "WHEN_TESTED_AGAINST")
+
+            for ref in lti.get('references'):
+                new_reference_node(tx, ref)
+                new_reference_rel(tx, ref, "LaboratoryInteraction", lti['id'])
+
+    if medicine.get('diseaseInteractions'):
+        for disease in medicine.get('diseaseInteractions'):
+            disease['id'] = hashlib.md5(disease['text'].encode()).hexdigest()
+
+            new_di_node(tx, disease)
+            new_di_rel(tx, disease, medicine)
+
+            new_disease_node(tx, disease['title'])
+            new_disease_rel(tx, disease['title'], "DiseaseInteraction", disease['id'], _rel="MAY_CORRELATES")
+
+            for ref in disease.get('references'):
+                new_reference_node(tx, ref)
+                new_reference_rel(tx, ref, "DiseaseInteraction", disease['id'])
+    
+    if medicine.get('mechanismOfAction'):
+        for ma in medicine.get('mechanismOfAction'):
+            ma['id'] = hashlib.md5(ma['text'].encode()).hexdigest() 
+
+            new_mai_node(tx, ma)
+            new_mai_rel(tx, ma, medicine)
+
+            new_ma_node(tx, ma['title'])
+            new_ma_rel(tx, ma['title'], "MechanismOfActionInteraction", ma['id'], _rel="MAY_CAUSE")
+
+            for ref in ma.get('references'):
+                new_reference_node(tx, ref)
+                new_reference_rel(tx, ref, "MechanismOfActionInteraction", ma['id'])
+    
+    if medicine.get('pharmacokinetics'):
+        for pk in medicine.get('pharmacokinetics'):
+            pk['id'] = hashlib.md5(pk['text'].encode()).hexdigest() 
+
+            new_pki_node(tx, pk)
+            new_pki_rel(tx, pk, medicine)
+
+            new_pk_node(tx, pk['title'])
+            new_pk_rel(tx, pk['title'], "PharmacokineticsInteraction", pk['id'], _rel="MAY_HAVE_SOME_IMPACT")
+
+            for ref in ma.get('references'):
+                new_reference_node(tx, ref)
+                new_reference_rel(tx, ref, "PharmacokineticsInteraction", pk['id'])
 
 if __name__ == '__main__':
     driver = GraphDatabase.driver("bolt://localhost:7687", auth=basic_auth("neo4j", "naturalmed"))
@@ -362,7 +634,7 @@ if __name__ == '__main__':
     
     try:
         tx_count = 0
-        for medicine in col.find().limit(15):
+        for medicine in col.find():
             with session.begin_transaction() as tx:
                 tx_count += 1
                 print("Beggining Neo4j Transaction: {0}".format(tx_count))

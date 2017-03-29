@@ -53,7 +53,7 @@ def consume_output(output, col):
 
 if __name__ == '__main__':
     gdriver = GraphDatabase.driver("bolt://localhost:7687", auth=basic_auth("neo4j", "naturalmed"))
-    driver = webdriver.Chrome(executable_path="./chromedriver")
+    driver = webdriver.Chrome(executable_path="./../chromedriver")
     client = MongoClient(NATMED_CN)
     col = client[NATMED_DB][NATMED_COL]
 

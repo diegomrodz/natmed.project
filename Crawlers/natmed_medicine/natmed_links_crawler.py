@@ -29,7 +29,7 @@ def login(driver):
     assert is_logged(driver), "Couldn't login into the natmed website"
 
 if __name__ == '__main__':
-    driver = webdriver.Chrome(executable_path="./chromedriver")
+    driver = webdriver.Chrome(executable_path="./../chromedriver")
 
     try:
         driver.get(NATMED_START_URL)

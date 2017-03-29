@@ -9,7 +9,7 @@ NATMED_LINKS = "./links.txt"
 NATMED_CRAWLER = "./natmed_foods_crawler.js"
 NATMED_CREDENTIALS = "./credentials.txt"
 
-CHROMEDRIVER = "./chromedriver"
+CHROMEDRIVER = "./../chromedriver"
 
 NATMED_CN = "mongodb://localhost:27017"
 NATMED_DB = "natmed"

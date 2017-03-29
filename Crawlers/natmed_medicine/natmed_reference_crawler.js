@@ -3,7 +3,7 @@ var arr = [];
 $(".reference-detail").each(function (k, el) {
     var obj = {};
     
-    obj.id = $(el).find(".reference-number-column").text().trim();
+    obj._id = $(el).find(".reference-number-column").text().trim();
     
     obj.text = $(el).find(".reference-text-column")
                     .text().trim()
@@ -14,5 +14,4 @@ $(".reference-detail").each(function (k, el) {
     arr.push(obj);
 });
 
-console.log(JSON.stringify(arr, null, "\t"));
-//return arr;
+return JSON.stringify(arr, null, "\t");

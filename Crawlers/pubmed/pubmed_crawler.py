@@ -18,8 +18,7 @@ def get_crawler():
 def get_references(col):
     return col.aggregate([
         { "$unwind": { "path": "$link" } },
-        { "$project": { "_id": 1, "link": "$link" } },
-        { "$skip": 2425 }
+        { "$project": { "_id": 1, "link": "$link" } }
     ])
 
 def consume_output(_id, output, col):
@@ -36,7 +35,7 @@ if __name__ == '__main__':
 
     try:
         print("Starting the crawler\n")
-        count = 2425
+        count = 0
 
         for ref in get_references(col):
             count += 1

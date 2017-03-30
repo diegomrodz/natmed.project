@@ -8,10 +8,12 @@ Datasets/*.tsv
 Datasets/*.csv
 Datasets/*.zip
 Datasets/*.gz
+Datasets/glove.6B/*.txt
 
 Dumps/*.json
 Dumps/*.csv
 Dumps/*.pickle
+Dumps/*.pkl
 
 Scripts/amazon_products/node_modules
 Scripts/amazon/node_modules

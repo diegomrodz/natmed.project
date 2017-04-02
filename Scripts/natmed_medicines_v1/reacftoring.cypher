@@ -112,3 +112,17 @@ MATCH (a:Medicine)-[r1]->(n:LaboratoryInteraction)-[r2]->(b:LaboratoryTest)
 MATCH (n)<-[]-(ref:Reference)
 CREATE (a)-[:HAS_INTERACTION]->(m:Interaction {id: n.id, text: n.text, type: labels(n)[0]})-[:IN_RELATION_TO]->(b)
 CREATE (m)<-[:REFERENCES]-(ref)
+
+//
+MATCH (n:Information)
+MATCH (n)<-[]-(r:Reference)
+WITH n.id as id, count(n.id) as cnt, collect(r) as refs
+UNWIND refs as ref
+MATCH (m:Information {id: id})
+CREATE (m)<-[:REFERENCES]-(ref)
+
+MATCH (n:Information) 
+WITH n.id as id, count(n.id) as count, collect(n) as lst
+WHERE size(lst) > 1
+UNWIND range(1, size(lst) - 1) as i
+DETACH DELETE lst[i]

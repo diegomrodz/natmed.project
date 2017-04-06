@@ -20,8 +20,8 @@ Since the most important thing at this exploration was the connections between t
 
 The first version of the model remembered a lot the structured found on the website crawled:
 
-![alt tag](https://pbs.twimg.com/media/C8WNgY9XcAAD8rD.jpg:medium)
+![alt tag](https://pbs.twimg.com/media/C8WNgY9XcAAD8rD.jpg:small)
 
 Once I better understood the relations, the first step would be to refactor this model using the Cypher Language and the final result was the following:
 
-![alt tag](https://pbs.twimg.com/media/C8WNiIVXYAAg9vb.jpg:medium)
+![alt tag](https://pbs.twimg.com/media/C8WNiIVXYAAg9vb.jpg:small)
